@@ -34,8 +34,8 @@ class Exams(models.Model):
     total_marks = models.DecimalField(max_digits=10, decimal_places=5, null=True, blank=True)
     
     date_registered = models.DateTimeField(auto_now_add=True)
-    open_time = models.DateTimeField(verbose="Time when the exam can start to be taken")
-    close_time = models.DateTimeField(verbose="Time when the exam stops being able to be to be taken")
+    open_time = models.DateTimeField()
+    close_time = models.DateTimeField()
 
 class User_on_Exam(models.Model):
     id = models.UUIDField(
@@ -44,7 +44,7 @@ class User_on_Exam(models.Model):
         editable=False
     )
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exams, on_delete=models.SET_NULL)
+    exam = models.ForeignKey(Exams, on_delete=models.CASCADE)
     user_marks = models.DecimalField(max_digits=10, decimal_places=5)
-    is_practice = models.BooleanField(default=False, verbose="This instance of the exam taken is a mock exam")
+    is_practice = models.BooleanField(default=False, )
     date_user_finished = models.DateTimeField()
