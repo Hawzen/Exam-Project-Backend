@@ -46,5 +46,5 @@ class User_on_Exam(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exams, on_delete=models.SET_NULL)
     user_marks = models.DecimalField(max_digits=10, decimal_places=5)
-    is_practice = models.BooleanField(default=False, verbose=)
+    is_practice = models.BooleanField(default=False, verbose="This instance of the exam taken is a mock exam")
     date_user_finished = models.DateTimeField()
