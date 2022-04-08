@@ -33,12 +33,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "exam_backend_django",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.admindocs',
+
 ]
 
 MIDDLEWARE = [
@@ -75,12 +78,10 @@ WSGI_APPLICATION = 'exam_backend_django.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE':  dj_database_url.config(default=os.path.expandvars(
-            os.environ['COCKROACH_EXAM_DB']), engine='django_cockroachdb')
-    }
-}
+DATABASES = {}
+DATABASES['default'] = dj_database_url.config(default=os.path.expandvars(
+    os.environ['DATABASE_URL']), engine='django_cockroachdb')
+DATABASES['default']["OPTIONS"]["options"] = "--cluster=exam-backend-390"
 
 
 # Password validation
