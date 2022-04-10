@@ -1,2 +1,3 @@
 **/*.pyc
 certs/
+exam_backend_django/migrations/
