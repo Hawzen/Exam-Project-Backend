@@ -2,3 +2,4 @@ psycopg2-binary
 django
 django-cockroachdb
 dj-database-url
+argon2-cffi # python -m pip install argon2-cffi
