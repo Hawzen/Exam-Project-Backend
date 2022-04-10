@@ -1,23 +1,21 @@
-from email.policy import default
-from tabnanny import verbose
 from django.db import models
+from django.contrib.auth.models import User
 import uuid
 
 
-class Users(models.Model):
+class Student(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False
     )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     username = models.CharField(max_length=256)
     student_id = models.CharField(max_length=256, unique=True)
-    hashed_password = models.CharField(max_length=1024)
-    salt = models.CharField(max_length=1024)
-    date_registered = models.DateTimeField(auto_now_add=True)
+    date_registered = models.DateTimeField(auto_now_add=True)    
+    exams = models.ManyToManyField("Exam", through="Student_on_Exam")
 
-
-class Exams(models.Model):
+class Exam(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -37,14 +35,9 @@ class Exams(models.Model):
     open_time = models.DateTimeField()
     close_time = models.DateTimeField()
 
-class User_on_Exam(models.Model):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exams, on_delete=models.CASCADE)
-    user_marks = models.DecimalField(max_digits=10, decimal_places=5)
+class Student_on_Exam(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    student_marks = models.DecimalField(max_digits=11, decimal_places=5)
     is_practice = models.BooleanField(default=False, )
-    date_user_finished = models.DateTimeField()
+    date_student_finished = models.DateTimeField()

@@ -40,8 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admindocs',
-
 ]
 
 MIDDLEWARE = [
@@ -81,7 +79,7 @@ WSGI_APPLICATION = 'exam_backend_django.wsgi.application'
 DATABASES = {}
 DATABASES['default'] = dj_database_url.config(default=os.path.expandvars(
     os.environ['DATABASE_URL']), engine='django_cockroachdb')
-DATABASES['default']["OPTIONS"]["options"] = "--cluster=exam-backend-390"
+DATABASES['default']["OPTIONS"]["options"] = DATABASES['default']["OPTIONS"]["options"].replace("D", " ", 1)
 
 
 # Password validation
@@ -102,6 +100,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]
+
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+
+# AUTH_USER_MODEL = 'exam_backend_django.Student'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
