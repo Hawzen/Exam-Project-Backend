@@ -35,7 +35,6 @@ def login_view(request):
     if user is not None:
         login(request, user)
         student = User.objects.get(username=user.get_username())
-        print(f"{student=}\n\n{dir(student)=}")
         return JsonResponse({'status':'success'})
     else:
         return JsonResponse({'status':'failed', "message": "Incorrect login details"})
