@@ -24,7 +24,7 @@ class Exam(models.Model):
         default=uuid.uuid4,
         editable=False
     )
-    exam_name = models.CharField(max_length=256)
+    exam_name = models.CharField(max_length=256, unique=True)
     course_name = models.CharField(max_length=256)
     course_id = models.CharField(max_length=256)
     
