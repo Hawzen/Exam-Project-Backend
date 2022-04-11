@@ -5,8 +5,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
 from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 
 from . import models
 
@@ -58,3 +58,18 @@ def logout_view(request):
     logout(request)
     return JsonResponse({"message": "success"}, status=200)
 
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+@require_params("start_index", "end_index")
+def get_exams_view(request):
+    MAX_EXAMS_PER_REQUEST = 100
+    data = json.loads(request.body)
+    if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
+        return JsonResponse({'status':'failed', "message": "wrong parameters, or wrong format."}, status=400)
+    fields = [field.name for field in models.Exam._meta.get_fields()]
+    fields.remove("id")
+    fields.remove("student")
+    fields.remove("student_on_exam")
+    exams = models.Exam.objects.order_by("-date_registered")[data["start_index"]:data["end_index"]].values(*fields)
+    return JsonResponse({"exams": list(exams), "message": "success"}, status=200)
