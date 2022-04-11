@@ -51,3 +51,22 @@ class Student_on_Exam(models.Model):
     
     def __str__(self):
         return f"{self.student.username=}\n\t{self.exam.exam_name=}\n\t{self.student_marks=}\n\t{self.is_practice=}\n\t{self.date_student_finished=}"
+
+def autofill_database():
+    """Working 10% of the time :)"""
+    from datetime import datetime
+
+    s1 = Student.objects.create(username="_Sample1", student_id="439101224", date_registered=datetime.now(), 
+            user=User.objects.create_user(username="_Sample1", password="_Sample1"))
+    s2 = Student.objects.create(username="_Sample2", student_id="441101515", date_registered=datetime.now(),
+            user=User.objects.create_user(username="_Sample2", password="_Sample2"))
+    s3 = Student.objects.create(username="_Sample4", student_id="441101111", date_registered=datetime.now(),
+            user=User.objects.create_user(username="_Sample3", password="_Sample3"))
+    x1 = Exam.objects.create(exam_name="Ex1", course_name="Crs1", course_id="123", exam_content="_Sample Qs", num_questions=56, 
+        graded=True, open_time=datetime.now(), close_time=datetime.now())
+    x2 = Exam.objects.create(exam_name="Ex2", course_name="Crs2", course_id="789", exam_content="_Sample Qs2", num_questions=100, 
+        graded=False, open_time=datetime.now(), close_time=datetime.now())
+    Student_on_Exam(student=s1, exam=x1, date_student_finished=datetime.now()).save()
+    Student_on_Exam(student=s2, exam=x1, date_student_finished=datetime.now()).save()
+    Student_on_Exam(student=s2, exam=x2, date_student_finished=datetime.now()).save()
+    Student_on_Exam(student=s3, exam=x2, date_student_finished=datetime.now()).save()
