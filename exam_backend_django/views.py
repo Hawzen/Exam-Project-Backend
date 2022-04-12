@@ -71,5 +71,6 @@ def get_exams_view(request):
     fields.remove("id")
     fields.remove("student")
     fields.remove("student_on_exam")
+    fields.remove("exam_content")
     exams = models.Exam.objects.order_by("-date_registered")[data["start_index"]:data["end_index"]].values(*fields)
     return JsonResponse({"exams": list(exams), "message": "success"}, status=200)
