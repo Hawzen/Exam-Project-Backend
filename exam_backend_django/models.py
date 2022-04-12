@@ -16,7 +16,12 @@ class Student(models.Model):
     exams = models.ManyToManyField("Exam", through="Student_on_Exam")
 
     def __str__(self):
-        return f"{self.username=}\n\t{self.student_id=}\n\t{self.date_registered=}\n\t{self.exams.count()=}"
+        return f"""
+            {self.username=}
+            \n\t{self.student_id=}
+            \n\t{self.date_registered=}
+            \n\t{self.exams.count()=}
+        """
 
 class Exam(models.Model):
     id = models.UUIDField(
@@ -39,8 +44,17 @@ class Exam(models.Model):
     close_time = models.DateTimeField()
 
     def __str__(self):
-        return f"{self.exam_name=}\n\t{self.course_name=}\n\t{self.course_id=}\n\t{self.num_questions=}\n\t{self.graded=}\n\t{self.total_marks=}" + \
-            f"\n\t{self.date_registered=}\n\t{self.open_time=}\n\t{self.close_time=}"
+        return f"""
+            {self.exam_name=}
+            \n\t{self.course_name=}
+            \n\t{self.course_id=}
+            \n\t{self.num_questions=}
+            \n\t{self.graded=}
+            \n\t{self.total_marks=}
+            \n\t{self.date_registered=}
+            \n\t{self.open_time=}
+            \n\t{self.close_time=}
+            """
 
 class Question(models.Model):
     id = models.UUIDField(
@@ -72,10 +86,17 @@ class Student_on_Exam(models.Model):
     student_answers = models.JSONField(default=empty_dict)
     student_marks = models.DecimalField(max_digits=11, decimal_places=5, blank=True, null=True)
     is_practice = models.BooleanField(default=False)
+    date_student_started = models.DateTimeField()
     date_student_finished = models.DateTimeField()
     
     def __str__(self):
-        return f"{self.student.username=}\n\t{self.exam.exam_name=}\n\t{self.student_marks=}\n\t{self.is_practice=}\n\t{self.date_student_finished=}"
+        return f"""
+            {self.student.username=}
+            \n\t{self.exam.exam_name=}
+            \n\t{self.student_marks=}
+            \n\t{self.is_practice=} 
+            \n\t{self.date_student_finished=}
+        """
 
 
 def autofill_database():
