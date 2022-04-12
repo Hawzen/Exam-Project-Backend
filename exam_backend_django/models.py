@@ -42,15 +42,41 @@ class Exam(models.Model):
         return f"{self.exam_name=}\n\t{self.course_name=}\n\t{self.course_id=}\n\t{self.num_questions=}\n\t{self.graded=}\n\t{self.total_marks=}" + \
             f"\n\t{self.date_registered=}\n\t{self.open_time=}\n\t{self.close_time=}"
 
+class Question(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    exam = models.ForeignKey(Exam, on_delete=models.SET_NULL, null=True)
+    description = models.TextField()
+    class QuestionType(models.TextChoices):
+        YES_NO = "YN", "Yes\\No"
+        CHOOSE_ONE = "CO", "Choose one"
+        CHOOSE_MANY = "CM", "Choose many"
+    qtype = models.CharField(
+        max_length=3,
+        choices= QuestionType.choices,
+        help_text="Question type"
+    )
+    choices = models.JSONField()
+    answers = models.JSONField()
+
+def empty_dict():
+    return {}
+
+
 class Student_on_Exam(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    student_marks = models.DecimalField(max_digits=11, decimal_places=5)
-    is_practice = models.BooleanField(default=False, )
+    student_answers = models.JSONField(default=empty_dict)
+    student_marks = models.DecimalField(max_digits=11, decimal_places=5, blank=True, null=True)
+    is_practice = models.BooleanField(default=False)
     date_student_finished = models.DateTimeField()
     
     def __str__(self):
         return f"{self.student.username=}\n\t{self.exam.exam_name=}\n\t{self.student_marks=}\n\t{self.is_practice=}\n\t{self.date_student_finished=}"
+
 
 def autofill_database():
     """Working 10% of the time :)"""
