@@ -13,8 +13,10 @@ def evaluate_question(qanswer, qsolution, qtype: str):
         return qanswer == qsolution
     elif qtype == "CM":
         return sum(1 if el in qsolution else -1  for el in qanswer) / len(qsolution)
-    elif type == "SA":
+    elif qtype == "SA":
         return qanswer.lower() == qsolution.lower()
+    else:
+        raise NotImplementedError(f"qtype {qtype} is not implemented")
 
 
 def check_malformed_answer(answer: dict, exam_content: dict, mode="exam") -> bool:
