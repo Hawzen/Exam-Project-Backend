@@ -10,7 +10,8 @@ from django.forms.models import model_to_dict
 
 from . import models
 
-# Decorators 
+# Decorators
+
 def require_params(*register_params):
     def decorator(function):
         def wrapper(request, *args, **kwargs):
@@ -67,10 +68,15 @@ def get_exams_view(request):
     data = json.loads(request.body)
     if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
         return JsonResponse({'status':'failed', "message": "wrong parameters, or wrong format."}, status=400)
-    fields = [field.name for field in models.Exam._meta.get_fields()]
-    fields.remove("id")
-    fields.remove("student")
-    fields.remove("student_on_exam")
-    fields.remove("exam_content")
+    fields = [
+        "exam_name",
+        "course_name",
+        "course_id",
+        "num_question",
+        "graded",
+        "total_marks",
+        "open_time",
+        "close_time"
+    ]
     exams = models.Exam.objects.order_by("-date_registered")[data["start_index"]:data["end_index"]].values(*fields)
     return JsonResponse({"exams": list(exams), "message": "success"}, status=200)
