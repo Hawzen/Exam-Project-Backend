@@ -17,7 +17,7 @@ def require_params(*register_params):
         def wrapper(request, *args, **kwargs):
             data = json.loads(request.body)
             if not any(param in data for param in register_params):
-                return JsonResponse({'status':'failed', "message": "wrong parameters, or wrong format."}, status=400)
+                return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
             return function(request, *args, **kwargs)
         return wrapper
     return decorator
@@ -33,11 +33,11 @@ def login_required(function):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@require_params("student_id", "password", "username")
+@require_params("student_id", "password", "nickname")
 def register_view(request):
     data = json.loads(request.body)
-    user = User.objects.create_user(username=data['student_id'], password=data['password'])
-    models.Student.objects.create(student_id=data['student_id'], username=data['username'], user=user)
+    user = User.objects.create_user(username=data["student_id"], password=data["password"])
+    models.Student.objects.create(student_id=data["student_id"], nickname=data["nickname"], user=user)
     return JsonResponse({"message": "success"}, status=200)
     
 @csrf_exempt
@@ -45,12 +45,12 @@ def register_view(request):
 @require_params("student_id", "password")
 def login_view(request):
     data = json.loads(request.body)
-    user = authenticate(request, username=data['student_id'], password=data['password'])
+    user = authenticate(request, username=data["student_id"], password=data["password"])
     if user is not None:
         login(request, user)
         return JsonResponse({"message": "success"}, status=200)
     else:
-        return JsonResponse({'status':'failed', "message": "Incorrect login details"}, status=401)
+        return JsonResponse({"status":"failed", "message": "Incorrect login details"}, status=401)
 
 @csrf_exempt
 @login_required
@@ -67,16 +67,15 @@ def get_exams_view(request):
     MAX_EXAMS_PER_REQUEST = 100
     data = json.loads(request.body)
     if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
-        return JsonResponse({'status':'failed', "message": "wrong parameters, or wrong format."}, status=400)
+        return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
     fields = [
         "exam_name",
         "course_name",
         "course_id",
-        "num_question",
-        "graded",
-        "total_marks",
+        "description",
+        "date_registered",
         "open_time",
-        "close_time"
+        "close_time",
     ]
     exams = models.Exam.objects.order_by("-date_registered")[data["start_index"]:data["end_index"]].values(*fields)
     return JsonResponse({"exams": list(exams), "message": "success"}, status=200)

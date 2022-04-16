@@ -1,3 +1,4 @@
+from random import randint
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
@@ -9,18 +10,17 @@ class Student(models.Model):
         editable=False
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
-    username = models.CharField(max_length=256)
     student_id = models.CharField(max_length=256, unique=True)
+    nickname = models.CharField(max_length=256)
     date_registered = models.DateTimeField(auto_now_add=True)
     exams = models.ManyToManyField("Exam", through="Student_on_Exam")
     authority = models.BooleanField(default=False, help_text="Makes and edits exams")
 
     def __str__(self):
         return f"""
-            {self.username=}
-            \n\t{self.student_id=}
-            \n\t{self.date_registered=}
-            \n\t{self.exams.count()=}
+            {self.student_id=}
+            \t{self.date_registered=}
+            \t{self.exams.count()=}
         """
 
 class Exam(models.Model):
@@ -29,74 +29,94 @@ class Exam(models.Model):
         default=uuid.uuid4,
         editable=False
     )
-    creator = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, default=None)
     exam_name = models.CharField(max_length=256, unique=True)
     course_name = models.CharField(max_length=256)
     course_id = models.CharField(max_length=256)
     description = models.TextField(default="")
-    num_questions = models.PositiveIntegerField()
-    is_practice = models.BooleanField(default=False)
-    practice_exam = models.OneToOneField("self", on_delete=models.SET_NULL, null=True)
-    total_marks = models.DecimalField(max_digits=10, decimal_places=5, null=True, blank=True)
+    exam_content = models.JSONField()
+    answers = models.JSONField()
     date_registered = models.DateTimeField(auto_now_add=True)
     open_time = models.DateTimeField()
     close_time = models.DateTimeField()
+    creator = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
         return f"""
             {self.exam_name=}
-            \n\t{self.course_name=}
-            \n\t{self.course_id=}
-            \n\t{self.num_questions=}
-            \n\t{self.graded=}
-            \n\t{self.total_marks=}
-            \n\t{self.date_registered=}
-            \n\t{self.open_time=}
-            \n\t{self.close_time=}
+            \t{self.course_name=}
+            \t{self.course_id=}
+            \t{self.date_registered=}
+            \t{self.open_time=}
+            \t{self.close_time=}
             """
 
-class Question(models.Model):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    # image = models.ImageField
-    exam = models.ForeignKey(Exam, on_delete=models.SET_NULL, null=True)
-    description = models.TextField()
-    question_index = models.SmallIntegerField()
-    class QuestionType(models.TextChoices):
-        YES_NO = "YN", "Yes\\No"
-        CHOOSE_ONE = "CO", "Choose one"
-        CHOOSE_MANY = "CM", "Choose many"
-        SHORT_ANSWER = "SA", "Short answer"
-    qtype = models.CharField(
-        max_length=3,
-        choices= QuestionType.choices,
-        help_text="Question type"
-    )
-    choices = models.JSONField()
-    answers = models.JSONField()
-    hint = models.TextField()
     """
-    Examples:
-    YES_NO:
-        description: "Is the earth flat"
-        choices = {}
-        answers = {"0": 0}
-    CHOOSE_ONE:
-        description: "Which one of the following items isn't a fruit"
-        choices = {"0": ["Apple", "Orange", "Table"]}
-        answers = {"0": 2}
-    CHOOSE_MANY:
-        description: "Which one of the following items is a fruit"
-        choices = {"0": ["Apple", "Orange", "Table"]}
-        answers = {"0": [0, 1]}
-    SHORT_ANSWER:
-        description: "What is the language that dominates the web"
-        choices = {}
-        answers = {"0": "Javascript"}
+    exam_content example:
+        
+    {
+        "exam":{
+            "0":{
+                "description":"Is the earth flat",
+                "hint":"mafs",
+                "qtype":"YN",
+                "marks": 5
+            },
+            "1":{
+                "description":"Which one of the following items isn't a fruit",
+                "choices":[
+                    "Apple",
+                    "Orange",
+                    "Table"
+                ],
+                "hint":"Everyday object",
+                "qtype":"CO",
+                "marks": 5
+            },
+            "2":{
+                "description":"Which one of the following items is a fruit",
+                "choices":[
+                    "Apple",
+                    "Orange",
+                    "Table"
+                ],
+                "hint":"Plants",
+                "qtype":"CM",
+                "marks": 2
+            },
+            "3":{
+                "description":"What is the language that dominates the web",
+                "hint":"Plants",
+                "qtype":"SA",
+                "marks": 999
+            }
+        },
+        "practice":{
+            "0":{
+                "description":"Does malloc zero?",
+                "hint":"trying doesnt emsure the answer",
+                "qtype":"YN"
+            }
+        }
+    }
+
+
+    answers example:
+    {
+        "exam":{
+            "0":0,
+            "1":2,
+            "2":[
+                0,
+                1
+            ],
+            "3":"Javascript"
+        },
+        "practice":{
+            "0":0
+        }
+    }
     """
+
 
 def empty_dict():
     return {}
@@ -112,28 +132,107 @@ class Student_on_Exam(models.Model):
     def __str__(self):
         return f"""
             {self.student.username=}
-            \n\t{self.exam.exam_name=}
-            \n\t{self.student_marks=}
-            \n\t{self.is_practice=} 
-            \n\t{self.date_student_finished=}
+            \t{self.exam.exam_name=}
+            \t{self.student_marks=}
+            \t{self.is_practice=} 
+            \t{self.date_student_finished=}
         """
 
 
 def autofill_database():
     """Working 10% of the time :)"""
-    from datetime import datetime
+    from datetime import datetime, timedelta
+    import json
+    import random
+    exam_str = """
+{
+        "exam":{
+            "0":{
+                "description":"Is the earth flat",
+                "hint":"mafs",
+                "qtype":"YN",
+                "marks": 5
+            },
+            "1":{
+                "description":"Which one of the following items isn't a fruit",
+                "choices":[
+                    "Apple",
+                    "Orange",
+                    "Table"
+                ],
+                "hint":"Everyday object",
+                "qtype":"CO",
+                "marks": 5
+            },
+            "2":{
+                "description":"Which one of the following items is a fruit",
+                "choices":[
+                    "Apple",
+                    "Orange",
+                    "Table"
+                ],
+                "hint":"Plants",
+                "qtype":"CM",
+                "marks": 2
+            },
+            "3":{
+                "description":"What is the language that dominates the web",
+                "hint":"Plants",
+                "qtype":"SA",
+                "marks": 999
+            }
+        },
+        "practice":{
+            "0":{
+                "description":"Does malloc zero?",
+                "hint":"trying doesnt emsure the answer",
+                "qtype":"YN"
+            }
+        }
+    }    
+    """
+    solution_str = \
+    """{
+        "exam":{
+            "0":0,
+            "1":2,
+            "2":[
+                0,
+                1
+            ],
+            "3":"Javascript"
+        },
+        "practice":{
+            "0":0
+        }
+    }"""
+    exam_content = json.loads(exam_str)
+    solution = json.loads(solution_str)
+    
+    r1 = random.randint(100, 2000)
+    s1 = Student.objects.create(
+        student_id=r1, 
+        nickname="Sample1", 
+        date_registered=datetime.now(),
+        user=User.objects.create(username=r1, password="pass"),
+        authority=True
+    )
+    x1 = Exam.objects.create(
+        exam_name=str(randint(1000, 9000)),
+        course_name="Crs1", 
+        course_id="111", 
+        exam_content=exam_content,
+        answers=solution,
+        description="First exam, hello world!",
+        open_time=datetime.now(), 
+        close_time=datetime.now() + timedelta(hours=1), 
+        creator=s1
+    )
 
-    s1 = Student.objects.create(username="_Sample1", student_id="439101224", date_registered=datetime.now(), 
-            user=User.objects.create_user(username="_Sample1", password="_Sample1"))
-    s2 = Student.objects.create(username="_Sample2", student_id="441101515", date_registered=datetime.now(),
-            user=User.objects.create_user(username="_Sample2", password="_Sample2"))
-    s3 = Student.objects.create(username="_Sample4", student_id="441101111", date_registered=datetime.now(),
-            user=User.objects.create_user(username="_Sample3", password="_Sample3"))
-    x1 = Exam.objects.create(exam_name="Ex1", course_name="Crs1", course_id="123", exam_content="_Sample Qs", num_questions=56, 
-        graded=True, open_time=datetime.now(), close_time=datetime.now())
-    x2 = Exam.objects.create(exam_name="Ex2", course_name="Crs2", course_id="789", exam_content="_Sample Qs2", num_questions=100, 
-        graded=False, open_time=datetime.now(), close_time=datetime.now())
-    Student_on_Exam(student=s1, exam=x1, date_student_finished=datetime.now()).save()
-    Student_on_Exam(student=s2, exam=x1, date_student_finished=datetime.now()).save()
-    Student_on_Exam(student=s2, exam=x2, date_student_finished=datetime.now()).save()
-    Student_on_Exam(student=s3, exam=x2, date_student_finished=datetime.now()).save()
+    Student_on_Exam(
+        student=s1, 
+        exam=x1, 
+        student_answers=solution,
+        date_student_started=datetime.now(),
+        date_student_finished=datetime.now() + timedelta(hours=0.8)
+        ).save()
