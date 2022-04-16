@@ -6,8 +6,8 @@ try:
     with open(".env") as file:
         env = ({line.split("=", 1)[0]: line.split("=", 1)[1] for line in file.readlines()})
 except Exception:
-    env = os.enviorn
-    
+    env = os.environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
