@@ -69,7 +69,7 @@ WSGI_APPLICATION = 'exam_backend_django.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASES = {}
 DATABASES['default'] = dj_database_url.config(default=os.path.expandvars(
-    env['DATABASE_URL']), engine='django_cockroachdb')
+    env['DB_URL']), engine='django_cockroachdb')
 DATABASES['default']["OPTIONS"]["options"] = DATABASES['default']["OPTIONS"]["options"].replace("D", " ", 1)
 
 
