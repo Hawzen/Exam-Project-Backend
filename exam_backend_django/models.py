@@ -131,7 +131,7 @@ class Student_on_Exam(models.Model):
     student_answers = models.JSONField(default=empty_dict)
     student_marks = models.DecimalField(max_digits=11, decimal_places=5, default=0)
     date_student_started = models.DateTimeField()
-    date_student_finished = models.DateTimeField()
+    date_student_finished = models.DateTimeField(null=True, blank=True)
 
     def save(self, *arg, **kwargs):
         self.student_marks = utilities.evaluate_answer(self.student_answers, self.exam.answers, self.exam.exam_content)
