@@ -116,7 +116,7 @@ def get_ranking_view(request):
 @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "start_index", "end_index")
-def get_ranking_view(request):
+def get_past_exams_view(request):
     MAX_EXAMS_PER_REQUEST = 100
     data = json.loads(request.body)
     if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
@@ -147,15 +147,49 @@ def get_questions_view(request):
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
     if exam.open_time > timezone.now():
         return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
+    if exam.close_time <= timezone.now():
+        return JsonResponse({"status":"failed", "message": "Exam has finished"})
     student = models.Student.objects.get(user=request.user)
-    models.Student_on_Exam(
+
+    if exam.attempts <= len(models.Student_on_Exam.objects.all()):
+        return JsonResponse({"status":"failed", "message": f"Reached maximum attempts (={exam.attempts})"})
+    else:
+        print(exam.attempts, len(models.Student_on_Exam.objects.all()))
+    sox = models.Student_on_Exam(
         student=student,
         exam=exam,
-        date_student_started=timezone.now()
     )
+    sox.save()
     return JsonResponse({
         "exam_content": exam.exam_content,
         "open_time": exam.open_time,
         "close_time": exam.close_time,
+        "message": "success"
+        }, status=200)
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+@require_params("exam_name", "student_answers")
+def submit_answers_view(request):
+    data = json.loads(request.body)
+    exam = models.Exam.objects.get(exam_name=data["exam_name"])
+    if exam.open_time > timezone.now():
+        return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
+    if exam.close_time <= timezone.now():
+        return JsonResponse({"status":"failed", "message": "Exam has finished"})
+    student = models.Student.objects.get(user=request.user)
+    sox = models.Student_on_Exam(
+        student=student,
+        exam=exam,
+        date_student_finished=timezone.now(),
+        student_answers=data["student_answers"]
+    )
+    sox.save()
+
+    return JsonResponse({
+        "student_marks": sox.student_marks,
+        "nickname": student.nickname,
+        "nickname": student.student_id,
         "message": "success"
         }, status=200)
