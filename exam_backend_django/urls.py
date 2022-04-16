@@ -32,4 +32,5 @@ urlpatterns = [
     # path('exam/getQuestions', views.get_questions),
     # path('exam/getQuestions', views.get_questions),
     # path('exam/getExams', views.get_exams_view),
+    path('', views.hello_world_view),
 ]

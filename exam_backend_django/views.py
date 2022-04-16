@@ -41,6 +41,9 @@ def exception_catcher(function):
 
 # Views
 
+def hello_world_view(request):
+    return JsonResponse({"Hello world": "Malloc doesn't zero"})
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_params("student_id", "password", "nickname")
