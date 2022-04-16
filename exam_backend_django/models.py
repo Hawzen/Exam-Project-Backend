@@ -4,6 +4,7 @@ import json
 from random import randint
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 from . import utilities
 
@@ -220,7 +221,7 @@ def autofill_database():
     s1 = Student.objects.create(
         student_id=r1, 
         nickname="Sample1", 
-        date_registered=datetime.utcnow(),
+        date_registered=timezone.now(),
         user=User.objects.create(username=r1, password="pass"),
         authority=True
     )
@@ -228,7 +229,7 @@ def autofill_database():
     s2 = Student.objects.create(
         student_id=r2, 
         nickname="Sample2",
-        date_registered=datetime.utcnow(),
+        date_registered=timezone.now(),
         user=User.objects.create(username=r2, password="pass"),
         authority=True
     )
@@ -239,8 +240,8 @@ def autofill_database():
         exam_content=exam_content,
         answers=solution,
         description="First exam, hello world!",
-        open_time=datetime.utcnow(), 
-        close_time=datetime.utcnow() + timedelta(hours=1), 
+        open_time=timezone.now(), 
+        close_time=timezone.now() + timedelta(hours=1), 
         creator=s1
     )
 
@@ -248,13 +249,13 @@ def autofill_database():
         student=s1, 
         exam=x1, 
         student_answers=solution,
-        date_student_started=datetime.utcnow(),
-        date_student_finished=datetime.utcnow() + timedelta(hours=0.8)
+        date_student_started=timezone.now(),
+        date_student_finished=timezone.now() + timedelta(hours=0.8)
         ).save()
     Student_on_Exam(
         student=s2, 
         exam=x1, 
         student_answers=solution,
-        date_student_started=datetime.utcnow(),
-        date_student_finished=datetime.utcnow() + timedelta(hours=0.8)
+        date_student_started=timezone.now(),
+        date_student_finished=timezone.now() + timedelta(hours=0.8)
         ).save()
