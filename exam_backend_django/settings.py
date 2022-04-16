@@ -2,10 +2,12 @@ from pathlib import Path
 import dj_database_url
 import os
 
-
-with open(".env") as file:
-    # print(f"{file.readlines()[0].split('=', 1)=}")
-    env = ({line.split("=", 1)[0]: line.split("=", 1)[1] for line in file.readlines()})
+try:
+    with open(".env") as file:
+        env = ({line.split("=", 1)[0]: line.split("=", 1)[1] for line in file.readlines()})
+except Exception:
+    env = os.enviorn
+    
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
