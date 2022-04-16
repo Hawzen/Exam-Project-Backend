@@ -24,7 +24,7 @@ urlpatterns = [
     path('user/logout', views.logout_view),
     path('exam/getExams', views.get_exams_view),
     path('exam/getRanking', views.get_ranking_view),
-    # path('exam/getExams', views.get_exams_view),
+    path('exam/getPastExams', views.get_ranking_view),
     # path('exam/getExams', views.get_exams_view),
     # path('exam/getExams', views.get_exams_view),
 ]

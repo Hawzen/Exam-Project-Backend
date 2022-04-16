@@ -98,30 +98,40 @@ def get_ranking_view(request):
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
     if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
         return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
-    ranking = models.Student_on_Exam.objects.filter(
-        exam=exam
-        ).order_by("-student_marks") \
-        .select_related("student")[data["start_index"]:data["end_index"]]
+    
+    ranking = models.Student_on_Exam.objects. \
+        filter(exam=exam
+        ).order_by("-student_marks"
+        ).select_related("student"
+        )[data["start_index"]:data["end_index"]]
+
     ranking = [
         {"nickname": attempt.student.nickname, "marks": attempt.student_marks} for attempt in ranking
     ]
     return JsonResponse({"ranking": ranking, "message": "success"}, status=200)
 
-# @csrf_exempt
-#
-# @login_required
-# @require_http_methods(["POST"])
-# @require_params("exam_name")
-# def get_past_exams_view(request):
-#     MAX_EXAMS_PER_REQUEST = 100
-#     data = json.loads(request.body)
-#     if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
-#         return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
-#     exam = models.Exam.objects.get(exam_name=data["exam"])
-#     ranking = models.Student_on_Exam.objects.filter(
-#         exam=exam
-#         ).select_related("student") 
-#     ranking = [
-#         {"nickname": attempt.student.nickname, "marks": attempt.student_marks} for attempt in ranking
-#     ]
-#     return JsonResponse({"ranking": ranking, "message": "success"}, status=200)
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+@require_params("exam_name", "start_index", "end_index")
+def get_ranking_view(request):
+    MAX_EXAMS_PER_REQUEST = 100
+    data = json.loads(request.body)
+    if MAX_EXAMS_PER_REQUEST < data["end_index"] - data["start_index"]:
+        return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
+
+    past_exams = models.Student_on_Exam.objects. \
+        filter(student=models.Student.objects.get(user=request.user)
+        ).order_by("-date_student_finished"
+        )[data["start_index"]:data["end_index"]
+        ].values("exam", "student_marks", "date_student_finished"
+        )[data["start_index"]:data["end_index"]]
+    
+    past_exams = [ # Refactor later, very many requests
+        {
+            "exam_name": models.Exam.objects.get(id=attempt["exam"]).exam_name, 
+            "description": models.Exam.objects.get(id=attempt["exam"]).description, 
+            "marks": attempt["student_marks"]
+        } for attempt in past_exams
+    ]
+    return JsonResponse({"past_exams": past_exams, "message": "success"}, status=200)
