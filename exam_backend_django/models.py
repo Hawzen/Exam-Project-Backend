@@ -1,7 +1,11 @@
+import uuid
+import json
+
 from random import randint
 from django.db import models
 from django.contrib.auth.models import User
-import uuid
+
+from . import utilities
 
 class Student(models.Model):
     id = models.UUIDField(
@@ -125,16 +129,19 @@ class Student_on_Exam(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     student_answers = models.JSONField(default=empty_dict)
-    student_marks = models.DecimalField(max_digits=11, decimal_places=5, blank=True, null=True)
+    student_marks = models.DecimalField(max_digits=11, decimal_places=5, default=0)
     date_student_started = models.DateTimeField()
     date_student_finished = models.DateTimeField()
 
+    def save(self, *arg, **kwargs):
+        self.student_marks = utilities.evaluate_answer(self.student_answers, self.exam.answers, self.exam.exam_content)
+        super(Student_on_Exam, self).save(*arg, **kwargs)
+
     def __str__(self):
         return f"""
-            {self.student.username=}
+            {self.student.nickname=}
             \t{self.exam.exam_name=}
             \t{self.student_marks=}
-            \t{self.is_practice=} 
             \t{self.date_student_finished=}
         """
 
@@ -213,8 +220,16 @@ def autofill_database():
     s1 = Student.objects.create(
         student_id=r1, 
         nickname="Sample1", 
-        date_registered=datetime.now(),
+        date_registered=datetime.utcnow(),
         user=User.objects.create(username=r1, password="pass"),
+        authority=True
+    )
+    r2 = random.randint(100, 2000)
+    s2 = Student.objects.create(
+        student_id=r2, 
+        nickname="Sample2",
+        date_registered=datetime.utcnow(),
+        user=User.objects.create(username=r2, password="pass"),
         authority=True
     )
     x1 = Exam.objects.create(
@@ -224,8 +239,8 @@ def autofill_database():
         exam_content=exam_content,
         answers=solution,
         description="First exam, hello world!",
-        open_time=datetime.now(), 
-        close_time=datetime.now() + timedelta(hours=1), 
+        open_time=datetime.utcnow(), 
+        close_time=datetime.utcnow() + timedelta(hours=1), 
         creator=s1
     )
 
@@ -233,6 +248,13 @@ def autofill_database():
         student=s1, 
         exam=x1, 
         student_answers=solution,
-        date_student_started=datetime.now(),
-        date_student_finished=datetime.now() + timedelta(hours=0.8)
+        date_student_started=datetime.utcnow(),
+        date_student_finished=datetime.utcnow() + timedelta(hours=0.8)
+        ).save()
+    Student_on_Exam(
+        student=s2, 
+        exam=x1, 
+        student_answers=solution,
+        date_student_started=datetime.utcnow(),
+        date_student_finished=datetime.utcnow() + timedelta(hours=0.8)
         ).save()
