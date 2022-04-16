@@ -25,6 +25,11 @@ urlpatterns = [
     path('exam/getExams', views.get_exams_view),
     path('exam/getRanking', views.get_ranking_view),
     path('exam/getPastExams', views.get_ranking_view),
-    # path('exam/getExams', views.get_exams_view),
+    path('exam/getQuestions', views.get_questions),
+    # path('exam/getQuestions', views.get_questions),
+    # path('exam/getQuestions', views.get_questions),
+    # path('exam/getQuestions', views.get_questions),
+    # path('exam/getQuestions', views.get_questions),
+    # path('exam/getQuestions', views.get_questions),
     # path('exam/getExams', views.get_exams_view),
 ]

@@ -1,5 +1,6 @@
 import json
 from functools import wraps
+from datetime import datetime, timedelta
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -7,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 from . import models
 
@@ -135,3 +137,25 @@ def get_ranking_view(request):
         } for attempt in past_exams
     ]
     return JsonResponse({"past_exams": past_exams, "message": "success"}, status=200)
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+@require_params("exam_name")
+def get_questions_view(request):
+    data = json.loads(request.body)
+    exam = models.Exam.objects.get(exam_name=data["exam_name"])
+    if exam.open_time > timezone.now():
+        return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
+    student = models.Student.objects.get(user=request.user)
+    models.Student_on_Exam(
+        student=student,
+        exam=exam,
+        date_student_started=timezone.now()
+    )
+    return JsonResponse({
+        "exam_content": exam.exam_content,
+        "open_time": exam.open_time,
+        "close_time": exam.close_time,
+        "message": "success"
+        }, status=200)
