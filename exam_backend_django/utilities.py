@@ -1,6 +1,3 @@
-import json
-from multiprocessing.sharedctypes import Value
-
 def evaluate_answer(answer: dict, solution: dict, exam_content: dict, mode="exam") -> int:
     """Evaluates a student answer"""
     answer, solution, exam_content = answer[mode], solution[mode], exam_content[mode]
@@ -11,6 +8,7 @@ def evaluate_answer(answer: dict, solution: dict, exam_content: dict, mode="exam
     return total_marks
 
 def evaluate_question(qanswer, qsolution, qtype: str):
+    """Evaluate one question"""
     if qtype in ("YN", "CO"):
         return qanswer == qsolution
     elif qtype == "CM":
@@ -24,7 +22,7 @@ def check_malformed_answer(answer: dict, exam_content: dict, mode="exam") -> boo
     for index, question in exam_content.items():
         qtype = question["qtype"]
         if answer.get(index, None) is None:
-            raise ValueError(f"Answer is malformed: does not include question {index}")
+            return False, f"Answer is malformed: does not include question {index}"
         qanswer = answer[index]
         if qtype in ("YN", "CO"):
             if isinstance(qanswer, int):
@@ -35,4 +33,5 @@ def check_malformed_answer(answer: dict, exam_content: dict, mode="exam") -> boo
         elif type == "SA":
             if isinstance(qanswer, str):
                 continue
-        raise ValueError(f"Answer is malformed: question {index} has wrong answer types")
+        return False, f"Answer is malformed: question {index} has wrong answer types"
+    return True, "OK"
