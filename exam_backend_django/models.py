@@ -40,6 +40,7 @@ class Exam(models.Model):
     description = models.TextField(default="")
     exam_content = models.JSONField()
     answers = models.JSONField()
+    attempts = models.SmallIntegerField(default=1)
     date_registered = models.DateTimeField(auto_now_add=True)
     open_time = models.DateTimeField()
     close_time = models.DateTimeField()
@@ -131,11 +132,12 @@ class Student_on_Exam(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     student_answers = models.JSONField(default=empty_dict)
     student_marks = models.DecimalField(max_digits=11, decimal_places=5, default=0)
-    date_student_started = models.DateTimeField()
+    date_student_started = models.DateTimeField(auto_now_add=True, auto_now=False)
     date_student_finished = models.DateTimeField(null=True, blank=True)
 
     def save(self, *arg, **kwargs):
-        self.student_marks = utilities.evaluate_answer(self.student_answers, self.exam.answers, self.exam.exam_content)
+        if self.date_student_finished is not None:
+            self.student_marks = utilities.evaluate_answer(self.student_answers, self.exam.answers, self.exam.exam_content)
         super(Student_on_Exam, self).save(*arg, **kwargs)
 
     def __str__(self):
@@ -143,6 +145,7 @@ class Student_on_Exam(models.Model):
             {self.student.nickname=}
             \t{self.exam.exam_name=}
             \t{self.student_marks=}
+            \t{self.date_student_started=}
             \t{self.date_student_finished=}
         """
 
@@ -239,9 +242,22 @@ def autofill_database():
         course_id="111", 
         exam_content=exam_content,
         answers=solution,
+        attempts=2,
         description="First exam, hello world!",
         open_time=timezone.now(), 
-        close_time=timezone.now() + timedelta(hours=1), 
+        close_time=timezone.now() + timedelta(hours=1000), 
+        creator=s1
+    )
+    x2 = Exam.objects.create(
+        exam_name=str(randint(1000, 9000)),
+        course_name="Crs2", 
+        course_id="222", 
+        exam_content=exam_content,
+        answers=solution,
+        attempts=50,
+        description="Second exam, hello world!",
+        open_time=timezone.now(), 
+        close_time=timezone.now() + timedelta(hours=1000), 
         creator=s1
     )
 
