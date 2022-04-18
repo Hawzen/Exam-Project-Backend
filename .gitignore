@@ -2,3 +2,4 @@
 certs/
 exam_backend_django/migrations/
 .env
+*.crt
