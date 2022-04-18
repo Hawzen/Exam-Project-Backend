@@ -28,6 +28,7 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "exam_backend_django",
+    "corsheaders",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -47,6 +49,24 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'exam_backend_django.urls'
+
+# CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://\w+\.github\.com$",
+    r"^http://localhost:.*$",
+]
+
+CORS_URLS_REGEX = r"^/api/.*$"
+
+CORS_ALLOW_METHODS = [
+    "POST",
+]
 
 TEMPLATES = [
     {
