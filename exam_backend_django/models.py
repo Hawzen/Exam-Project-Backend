@@ -1,5 +1,5 @@
 import uuid
-import json
+import os
 
 from random import randint
 from django.db import models
@@ -7,6 +7,12 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 from . import utilities
+
+try:
+    os.system("curl --create-dirs -o $HOME/.postgresql/root.crt -O https://cockroachlabs.cloud/clusters/5162e711-d416-49e6-9f7e-a7925ca3df7f/cert")
+except Exception:
+    print("Failed downloading cockroach certificates")
+
 
 class Student(models.Model):
     id = models.UUIDField(
