@@ -44,7 +44,7 @@ def exception_catcher(function):
 def hello_world_view(request):
     return JsonResponse({"Hello world": "Malloc doesn't zero"})
 
-# @csrf_exempt
+@csrf_exempt
 @require_http_methods(["POST"])
 @require_params("student_id", "password", "nickname")
 def register_view(request):
@@ -53,7 +53,7 @@ def register_view(request):
     models.Student.objects.create(student_id=data["student_id"], nickname=data["nickname"], user=user)
     return JsonResponse({"message": "success"}, status=200)
     
-# @csrf_exempt
+@csrf_exempt
 @require_http_methods(["POST"])
 @require_params("student_id", "password")
 def login_view(request):
@@ -66,14 +66,14 @@ def login_view(request):
     else:
         return JsonResponse({"status":"failed", "message": "Incorrect login details"}, status=401)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def logout_view(request):
     logout(request)
     return JsonResponse({"message": "success"}, status=200)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @require_params("start_index", "end_index")
@@ -94,7 +94,7 @@ def get_exams_view(request):
     exams = models.Exam.objects.order_by("-date_registered")[data["start_index"]:data["end_index"]].values(*fields)
     return JsonResponse({"exams": list(exams), "message": "success"}, status=200)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "start_index", "end_index")
@@ -116,7 +116,7 @@ def get_ranking_view(request):
     ]
     return JsonResponse({"ranking": ranking, "message": "success"}, status=200)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "start_index", "end_index")
@@ -142,7 +142,7 @@ def get_past_exams_view(request):
     ]
     return JsonResponse({"past_exams": past_exams, "message": "success"}, status=200)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name")
@@ -171,7 +171,7 @@ def get_questions_view(request):
         "message": "success"
         }, status=200)
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "student_answers")
