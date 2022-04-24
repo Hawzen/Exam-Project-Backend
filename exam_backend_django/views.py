@@ -27,6 +27,7 @@ def require_params(*register_params):
 def login_required(function):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
+            print(request.user)
             return JsonResponse({"message": "user not authenticated."}, status=401)
         return function(request, *args, **kwargs)
     return wrapper
@@ -62,19 +63,20 @@ def login_view(request):
     if user is not None:
         nickname = models.Student.objects.get(user=user).nickname
         login(request, user)
+        print(request.user, print(request.user.is_authenticated))
         return JsonResponse({"message": "success", "nickname": nickname}, status=200)
     else:
         return JsonResponse({"status":"failed", "message": "Incorrect login details"}, status=401)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 def logout_view(request):
     logout(request)
     return JsonResponse({"message": "success"}, status=200)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 @require_params("start_index", "end_index")
 def get_exams_view(request):
@@ -95,7 +97,7 @@ def get_exams_view(request):
     return JsonResponse({"exams": list(exams), "message": "success"}, status=200)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "start_index", "end_index")
 def get_ranking_view(request):
@@ -117,7 +119,7 @@ def get_ranking_view(request):
     return JsonResponse({"ranking": ranking, "message": "success"}, status=200)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "start_index", "end_index")
 def get_past_exams_view(request):
@@ -143,7 +145,7 @@ def get_past_exams_view(request):
     return JsonResponse({"past_exams": past_exams, "message": "success"}, status=200)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name")
 def get_questions_view(request):
@@ -172,7 +174,7 @@ def get_questions_view(request):
         }, status=200)
 
 @csrf_exempt
-@login_required
+# @login_required
 @require_http_methods(["POST"])
 @require_params("exam_name", "student_answers")
 def submit_answers_view(request):
