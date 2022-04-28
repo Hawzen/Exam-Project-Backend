@@ -23,7 +23,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-# CSRF_TRUSTED_ORIGINS = ['https://example.com']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
 
 # Application definition
 
