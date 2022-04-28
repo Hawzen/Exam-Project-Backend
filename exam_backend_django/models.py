@@ -99,14 +99,16 @@ class Exam(models.Model):
                 "description":"What is the language that dominates the web",
                 "hint":"Plants",
                 "qtype":"SA",
-                "marks": 999
+                "marks": 999,
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/800px-Unofficial_JavaScript_logo_2.svg.png"
             }
         },
         "practice":{
             "0":{
                 "description":"Does malloc zero?",
                 "hint":"trying doesnt emsure the answer",
-                "qtype":"YN"
+                "qtype":"YN",
+                "marks": 5
             }
         }
     }
@@ -138,12 +140,18 @@ class Student_on_Exam(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     student_answers = models.JSONField(default=empty_dict)
     student_marks = models.DecimalField(max_digits=11, decimal_places=5, default=0)
+    practice = models.BooleanField(default=False)
     date_student_started = models.DateTimeField(auto_now_add=True, auto_now=False)
     date_student_finished = models.DateTimeField(null=True, blank=True)
 
     def save(self, *arg, **kwargs):
         if self.date_student_finished is not None:
-            self.student_marks = utilities.evaluate_answer(self.student_answers, self.exam.answers, self.exam.exam_content)
+            self.student_marks = utilities.evaluate_answer(
+                self.student_answers, 
+                self.exam.answers, 
+                self.exam.exam_content, 
+                mode="practice" if self.practice else "exam"
+                )
         super(Student_on_Exam, self).save(*arg, **kwargs)
 
     def __str__(self):
@@ -196,14 +204,16 @@ def autofill_database():
                 "description":"What is the language that dominates the web",
                 "hint":"Plants",
                 "qtype":"SA",
-                "marks": 999
+                "marks": 999,
+                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/800px-Unofficial_JavaScript_logo_2.svg.png"
             }
         },
         "practice":{
             "0":{
                 "description":"Does malloc zero?",
                 "hint":"trying doesnt emsure the answer",
-                "qtype":"YN"
+                "qtype":"YN",
+                "marks": 5
             }
         }
     }    
