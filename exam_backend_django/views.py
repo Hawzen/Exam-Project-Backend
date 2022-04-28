@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -27,7 +28,6 @@ def require_params(*register_params):
 def login_required(function):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            print(request.user)
             return JsonResponse({"message": "user not authenticated."}, status=401)
         return function(request, *args, **kwargs)
     return wrapper
@@ -44,6 +44,13 @@ def exception_catcher(function):
 
 def hello_world_view(request):
     return JsonResponse({"Hello world": "Malloc doesn't zero"})
+
+@ensure_csrf_cookie
+def set_csrf_token(request):
+    """
+    This will be `/api/set-csrf-cookie/` on `urls.py`
+    """
+    return JsonResponse({"details": "CSRF cookie set"})
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -63,7 +70,6 @@ def login_view(request):
     if user is not None:
         nickname = models.Student.objects.get(user=user).nickname
         login(request, user)
-        print(request.user, print(request.user.is_authenticated))
         return JsonResponse({"message": "success", "nickname": nickname}, status=200)
     else:
         return JsonResponse({"status":"failed", "message": "Incorrect login details"}, status=401)
@@ -121,7 +127,7 @@ def get_ranking_view(request):
 @csrf_exempt
 # @login_required
 @require_http_methods(["POST"])
-@require_params("exam_name", "start_index", "end_index")
+@require_params("start_index", "end_index", "student_id")
 def get_past_exams_view(request):
     MAX_EXAMS_PER_REQUEST = 100
     data = json.loads(request.body)
@@ -129,17 +135,18 @@ def get_past_exams_view(request):
         return JsonResponse({"status":"failed", "message": "wrong parameters, or wrong format."}, status=400)
 
     past_exams = models.Student_on_Exam.objects. \
-        filter(student=models.Student.objects.get(user=request.user)
+        filter(student=models.Student.objects.get(student_id=data["student_id"])
         ).order_by("-date_student_finished"
         )[data["start_index"]:data["end_index"]
-        ].values("exam", "student_marks", "date_student_finished"
+        ].values("exam", "student_marks", "date_student_finished", "practice"
         )[data["start_index"]:data["end_index"]]
     
     past_exams = [ # Refactor later, very many requests
         {
             "exam_name": models.Exam.objects.get(id=attempt["exam"]).exam_name, 
             "description": models.Exam.objects.get(id=attempt["exam"]).description, 
-            "marks": attempt["student_marks"]
+            "marks": attempt["student_marks"],
+            "practice": attempt["practice"]
         } for attempt in past_exams
     ]
     return JsonResponse({"past_exams": past_exams, "message": "success"}, status=200)
@@ -147,7 +154,7 @@ def get_past_exams_view(request):
 @csrf_exempt
 # @login_required
 @require_http_methods(["POST"])
-@require_params("exam_name")
+@require_params("exam_name", "student_id")
 def get_questions_view(request):
     data = json.loads(request.body)
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
@@ -155,12 +162,10 @@ def get_questions_view(request):
         return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
     if exam.close_time <= timezone.now():
         return JsonResponse({"status":"failed", "message": "Exam has finished"})
-    student = models.Student.objects.get(user=request.user)
+    student = models.Student.objects.get(student_id=data["student_id"])
 
     if exam.attempts <= len(models.Student_on_Exam.objects.all()):
         return JsonResponse({"status":"failed", "message": f"Reached maximum attempts (={exam.attempts})"})
-    else:
-        print(exam.attempts, len(models.Student_on_Exam.objects.all()))
     sox = models.Student_on_Exam(
         student=student,
         exam=exam,
@@ -176,7 +181,7 @@ def get_questions_view(request):
 @csrf_exempt
 # @login_required
 @require_http_methods(["POST"])
-@require_params("exam_name", "student_answers")
+@require_params("exam_name", "student_answers", "student_id", "practice")
 def submit_answers_view(request):
     data = json.loads(request.body)
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
@@ -184,18 +189,56 @@ def submit_answers_view(request):
         return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
     if exam.close_time <= timezone.now():
         return JsonResponse({"status":"failed", "message": "Exam has finished"})
-    student = models.Student.objects.get(user=request.user)
+    student = models.Student.objects.get(student_id=data["student_id"])
     sox = models.Student_on_Exam(
         student=student,
         exam=exam,
         date_student_finished=timezone.now(),
-        student_answers=data["student_answers"]
+        student_answers=data["student_answers"],
+        practice=False if data["practice"] == 0 else True
     )
     sox.save()
 
     return JsonResponse({
         "student_marks": sox.student_marks,
         "nickname": student.nickname,
-        "nickname": student.student_id,
+        "student_id": student.student_id,
+        "message": "success"
+        }, status=200)
+
+@csrf_exempt
+# @login_required
+@require_http_methods(["POST"])
+@require_params("exam_name", "question_index")
+def delete_question_view(request):
+    mode = "exam"
+    data = json.loads(request.body)
+    exam = models.Exam.objects.get(exam_name=data["exam_name"])
+    del exam.exam_content[mode][data["question_index"]]
+    del exam.answers[mode][data["question_index"]]
+    exam.save()
+    return JsonResponse({
+        "question_sheet": exam.exam_content,
+        "message": "success"
+        }, status=200)
+
+@csrf_exempt
+# @login_required
+@require_http_methods(["POST"])
+@require_params("exam_name", "question_index", "question", "answer")
+def add_question_view(request):
+    mode = "exam"
+    data = json.loads(request.body)
+    exam = models.Exam.objects.get(exam_name=data["exam_name"])
+    if not set(data["question"].keys()).issuperset({"description", "hint", "qtype", "marks"}) \
+        and ("choices" in data["question"] or data["question"]["qtype"] not in ("CM", "CO")):
+        return JsonResponse({
+        "message": "failure, question sent doesnt include at least one of the following keys `description`, `hint`, `qtype`, `marks`"
+        }, status=400)
+    exam.exam_content[mode][data["question_index"]] = data["question"]
+    exam.answers[mode][data["question_index"]] = data["answer"]
+    exam.save()
+    return JsonResponse({
+        "question_sheet": exam.exam_content,
         "message": "success"
         }, status=200)

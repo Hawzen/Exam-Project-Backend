@@ -4,11 +4,20 @@ def evaluate_answer(answer: dict, solution: dict, exam_content: dict, mode="exam
     total_marks = 0
     for index, question in exam_content.items():
         marks = question["marks"]
-        total_marks += evaluate_question(answer[index], solution[index], qtype=question["qtype"]) * marks
+        print(index, question, evaluate_question(answer.get(index, None), solution[index], qtype=question["qtype"]) * marks)
+        total_marks += evaluate_question(answer.get(index, None), solution[index], qtype=question["qtype"]) * marks
     return total_marks
 
 def evaluate_question(qanswer, qsolution, qtype: str):
     """Evaluate one question"""
+    type_to_default = {
+        "YN": False,
+        "CO": "0",
+        "CM": [],
+        "SA": ""
+    }
+    if qanswer is None:
+        qanswer = type_to_default[qtype]
     if qtype in ("YN", "CO"):
         return qanswer == qsolution
     elif qtype == "CM":
@@ -37,3 +46,7 @@ def check_malformed_answer(answer: dict, exam_content: dict, mode="exam") -> boo
                 continue
         return False, f"Answer is malformed: question {index} has wrong answer types"
     return True, "OK"
+
+# def delete_question(question_sheet: dict, index: str, mode: str="exam") -> dict:
+#     question_sheet = question_sheet[mode]
+#     del question_sheet[index]
