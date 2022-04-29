@@ -4,7 +4,6 @@ def evaluate_answer(answer: dict, solution: dict, exam_content: dict, mode="exam
     total_marks = 0
     for index, question in exam_content.items():
         marks = question["marks"]
-        print(index, question, evaluate_question(answer.get(index, None), solution[index], qtype=question["qtype"]) * marks)
         total_marks += evaluate_question(answer.get(index, None), solution[index], qtype=question["qtype"]) * marks
     return total_marks
 
