@@ -68,9 +68,10 @@ def login_view(request):
     data = json.loads(request.body)
     user = authenticate(request, username=data["student_id"], password=data["password"])
     if user is not None:
-        nickname = models.Student.objects.get(user=user).nickname
+        student = models.Student.objects.get(user=user)
+        nickname, admin = student.nickname, student.admin
         login(request, user)
-        return JsonResponse({"message": "success", "nickname": nickname}, status=200)
+        return JsonResponse({"message": "success", "admin": admin, "nickname": nickname}, status=200)
     else:
         return JsonResponse({"status":"failed", "message": "Incorrect login details"}, status=401)
 
