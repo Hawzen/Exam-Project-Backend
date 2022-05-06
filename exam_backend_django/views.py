@@ -69,7 +69,7 @@ def login_view(request):
     user = authenticate(request, username=data["student_id"], password=data["password"])
     if user is not None:
         student = models.Student.objects.get(user=user)
-        nickname, admin = student.nickname, student.admin
+        nickname, admin = student.nickname, student.authority
         login(request, user)
         return JsonResponse({"message": "success", "admin": admin, "nickname": nickname}, status=200)
     else:
