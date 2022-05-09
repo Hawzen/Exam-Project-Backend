@@ -55,12 +55,14 @@ ROOT_URLCONF = 'exam_backend_django.urls'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "https://zingy-banoffee-e6df16.netlify.app"
 ]
 
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://\w+\.github\.com$",
     r"^http://localhost:.*$",
+    r"^https://\w+\.netlify\.app$"
 ]
 
 CORS_URLS_REGEX = r"^/api/.*$"
