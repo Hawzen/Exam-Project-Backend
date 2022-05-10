@@ -1,5 +1,6 @@
 **/*.pyc
-certs/
+# certs/
 exam_backend_django/migrations/
 .env
-*.crt
+# *.crt
+$HOME/

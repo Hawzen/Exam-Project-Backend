@@ -96,7 +96,7 @@ DATABASES = {}
 DATABASES['default'] = dj_database_url.config(default=os.path.expandvars(
     env['DB_URL']), engine='django_cockroachdb')
 DATABASES['default']["OPTIONS"]["options"] = DATABASES['default']["OPTIONS"]["options"].replace("D", " ", 1)
-
+# DATABASES['default']["OPTIONS"]["sslrootcert"] = "exam_backend_django/certs/root.crt"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
