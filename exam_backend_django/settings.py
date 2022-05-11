@@ -96,7 +96,13 @@ DATABASES = {}
 DATABASES['default'] = dj_database_url.config(default=os.path.expandvars(
     env['DB_URL']), engine='django_cockroachdb')
 DATABASES['default']["OPTIONS"]["options"] = DATABASES['default']["OPTIONS"]["options"].replace("D", " ", 1)
-# DATABASES['default']["OPTIONS"]["sslrootcert"] = "exam_backend_django/certs/root.crt"
+DATABASES['default']["OPTIONS"]["sslrootcert"] = "./exam_backend_django/certs/root.crt"
+
+# try:
+#     os.system("curl --create-dirs -o $HOME/.postgresql/root.crt -O https://cockroachlabs.cloud/clusters/5162e711-d416-49e6-9f7e-a7925ca3df7f/cert")
+# except Exception:
+#     print("Failed downloading cockroach certificates")
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
