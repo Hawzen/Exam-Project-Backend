@@ -226,10 +226,14 @@ def delete_question_view(request):
 @csrf_exempt
 # @login_required
 @require_http_methods(["POST"])
-@require_params("exam_name", "question_index", "question", "answer")
+@require_params("exam_name", "question_index", "question", "answer", "mode")
 def add_question_view(request):
-    mode = "exam"
     data = json.loads(request.body)
+    mode = data["mode"]
+    if mode not in ("exam", "practice"):
+        return JsonResponse({
+        "message": "Mode is not `exam` or `practice`"
+        }, status=400)
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
     if not set(data["question"].keys()).issuperset({"description", "hint", "qtype", "marks"}) \
         and ("choices" in data["question"] or data["question"]["qtype"] not in ("CM", "CO")):
