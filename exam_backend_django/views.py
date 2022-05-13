@@ -165,7 +165,8 @@ def get_questions_view(request):
         return JsonResponse({"status":"failed", "message": "Exam has finished"})
     student = models.Student.objects.get(student_id=data["student_id"])
 
-    if exam.attempts <= len(models.Student_on_Exam.objects.filter(student=student, exam=exam)):
+    current_attempts = len(models.Student_on_Exam.objects.filter(student=student, exam=exam))
+    if exam.attempts <= current_attempts:
         return JsonResponse({"status":"failed", "message": f"Reached maximum attempts (={exam.attempts})"})
     sox = models.Student_on_Exam(
         student=student,
@@ -176,6 +177,8 @@ def get_questions_view(request):
         "exam_content": exam.exam_content,
         "open_time": exam.open_time,
         "close_time": exam.close_time,
+        "max_attempts": exam.attempts,
+        "current_attempts": current_attempts,
         "message": "success"
         }, status=200)
 
