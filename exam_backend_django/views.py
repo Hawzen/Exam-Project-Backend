@@ -189,17 +189,19 @@ def get_questions_view(request):
 def submit_answers_view(request):
     data = json.loads(request.body)
     exam = models.Exam.objects.get(exam_name=data["exam_name"])
-    if exam.open_time > timezone.now():
-        return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
-    if exam.close_time <= timezone.now():
-        return JsonResponse({"status":"failed", "message": "Exam has finished"})
+    practice = False if data["practice"] == 0 else True
+    if not practice:
+        if exam.open_time > timezone.now():
+            return JsonResponse({"status":"failed", "message": "Exam has not started yet"})
+        if exam.close_time <= timezone.now():
+            return JsonResponse({"status":"failed", "message": "Exam has finished"})
     student = models.Student.objects.get(student_id=data["student_id"])
     sox = models.Student_on_Exam(
         student=student,
         exam=exam,
         date_student_finished=timezone.now(),
         student_answers=data["student_answers"],
-        practice=False if data["practice"] == 0 else True
+        practice=practice
     )
     sox.save()
 
