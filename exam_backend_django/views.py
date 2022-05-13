@@ -165,7 +165,7 @@ def get_questions_view(request):
         return JsonResponse({"status":"failed", "message": "Exam has finished"})
     student = models.Student.objects.get(student_id=data["student_id"])
 
-    current_attempts = len(models.Student_on_Exam.objects.filter(student=student, exam=exam, practice=True))
+    current_attempts = len(models.Student_on_Exam.objects.filter(student=student, exam=exam, practice=False))
     if exam.attempts <= current_attempts:
         return JsonResponse({"status":"failed", "message": f"Reached maximum attempts (={exam.attempts})"})
     sox = models.Student_on_Exam(
